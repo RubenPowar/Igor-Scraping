@@ -18,9 +18,23 @@ radius = st.selectbox(
 
 )
 
-max_pages = st.number_input(
+start_page = st.number_input(
 
-    "Pages to scrape",
+    "Start page",
+
+    min_value=1,
+
+    max_value=40,
+
+    value=1,
+
+    step=1
+
+)
+
+end_page = st.number_input(
+
+    "End page",
 
     min_value=1,
 
@@ -36,6 +50,12 @@ overwrite = st.checkbox("Refresh data", value=True)
 
 if st.button("Run scraper"):
 
+    if end_page < start_page:
+
+        st.error("End page must be greater than or equal to start page.")
+
+        st.stop()
+
     page_status = st.empty()
 
     page_progress = st.progress(0)
@@ -48,15 +68,19 @@ if st.button("Run scraper"):
 
         if event["stage"] == "pages":
 
-            checked_pages = event["page"]
+            current_page = event["page"]
 
-            total_pages = event["max_pages"]
+            pages_checked = event["pages_checked"]
 
-            page_progress.progress(checked_pages / total_pages)
+            pages_to_check = event["pages_to_check"]
+
+            page_progress.progress(pages_checked / pages_to_check)
 
             page_status.write(
 
-                f"Checked page {checked_pages}/{total_pages}: "
+                f"Checked page {current_page} "
+
+                f"({pages_checked}/{pages_to_check} in selected range): "
 
                 f"{event['urls_found']} new properties found "
 
@@ -90,7 +114,9 @@ if st.button("Run scraper"):
 
             overwrite=overwrite,
 
-            max_pages=max_pages,
+            start_page=start_page,
+
+            end_page=end_page,
 
             progress_callback=update_progress
 

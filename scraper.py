@@ -41,10 +41,14 @@ def get_base_url(postcode, location_id, radius, property_types="flat"):
     )
 
 
-def get_urls(base_url, max_pages=1, progress_callback=None):
-    page = 0
+def get_urls(base_url, start_page=1, end_page=1, progress_callback=None):
+    page = start_page - 1
+    final_page = end_page - 1
     ids = []
-    while page < max_pages:
+    pages_to_check = end_page - start_page + 1
+    pages_checked = 0
+
+    while page <= final_page:
         url = f"{base_url}&index={page * 24}"
         headers = {"User-Agent": "Mozilla/5.0"}
         response = requests.get(url, headers=headers)
@@ -60,12 +64,16 @@ def get_urls(base_url, max_pages=1, progress_callback=None):
                     ids.append(id)
                     urls_found += 1
         
+        pages_checked += 1
         print(f"page {page + 1}: {urls_found} new properties found.")
         if progress_callback:
             progress_callback({
                 "stage": "pages",
                 "page": page + 1,
-                "max_pages": max_pages,
+                "start_page": start_page,
+                "end_page": end_page,
+                "pages_checked": pages_checked,
+                "pages_to_check": pages_to_check,
                 "urls_found": urls_found,
                 "total_urls": len(ids),
             })
@@ -340,7 +348,7 @@ def scrape_all(urls, progress_callback=None):
     return df
 
 
-def generate_sale_data(postcode, radius, overwrite=False, max_pages=1, progress_callback=None):
+def generate_sale_data(postcode, radius, overwrite=False, start_page=1, end_page=1, progress_callback=None):
     output_csv = os.path.join(
         os.getcwd(),
         "data",
@@ -357,7 +365,12 @@ def generate_sale_data(postcode, radius, overwrite=False, max_pages=1, progress_
 
         location_id = get_location_id(postcode)
         base_url = get_base_url(postcode, location_id, radius)
-        urls = get_urls(base_url, max_pages=max_pages, progress_callback=progress_callback)
+        urls = get_urls(
+            base_url,
+            start_page=start_page,
+            end_page=end_page,
+            progress_callback=progress_callback,
+        )
 
         if len(urls) == 0:
             print(f"No properties found within {radius} miles.")
