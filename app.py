@@ -6,7 +6,7 @@ st.set_page_config(page_title="Rightmove Scraper", layout="wide")
 
 st.title("Rightmove Sale Data Scraper")
 
-postcode = st.text_input("Postcode", value="W5 5DB")
+postcode = st.text_input("Postcode", value="NW1 7RG")
 
 radius = st.selectbox(
 

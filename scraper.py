@@ -7,7 +7,6 @@ import os
 import pandas as pd
 import json
 from datetime import datetime, date
-import matplotlib.pyplot as plt
 
 
 def get_location_id(postcode):
