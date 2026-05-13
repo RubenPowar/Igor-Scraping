@@ -1,6 +1,6 @@
 import streamlit as st
 
-from scraper import generate_sale_data
+from scraper import LocationLookupError, generate_sale_data
 
 st.set_page_config(page_title="Rightmove Scraper", layout="wide")
 
@@ -106,21 +106,29 @@ if st.button("Run scraper"):
 
     with st.spinner("Scraping Rightmove..."):
 
-        df = generate_sale_data(
+        try:
 
-            postcode,
+            df = generate_sale_data(
 
-            radius,
+                postcode,
 
-            overwrite=overwrite,
+                radius,
 
-            start_page=start_page,
+                overwrite=overwrite,
 
-            end_page=end_page,
+                start_page=start_page,
 
-            progress_callback=update_progress
+                end_page=end_page,
 
-        )
+                progress_callback=update_progress
+
+            )
+
+        except LocationLookupError as exc:
+
+            st.error(str(exc))
+
+            st.stop()
 
     if df is None or df.empty:
 

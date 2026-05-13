@@ -9,10 +9,18 @@ import json
 from datetime import datetime, date
 
 
+class LocationLookupError(Exception):
+    pass
+
+
 def get_location_id(postcode):
     url = f"https://www.rightmove.co.uk/house-prices/{postcode.replace(' ', '-')}.html"
     headers = {"User-Agent": "Mozilla/5.0"}
-    response = requests.get(url, headers=headers)
+    try:
+        response = requests.get(url, headers=headers, timeout=20)
+        response.raise_for_status()
+    except requests.RequestException as exc:
+        raise LocationLookupError(f"couldn't load Rightmove location page for {postcode}.") from exc
 
     soup = BeautifulSoup(response.text, "html.parser")
 
@@ -21,7 +29,10 @@ def get_location_id(postcode):
         if match:
             return match.group(1)
 
-    raise Exception("couldn't find postcode's location_id.")
+    raise LocationLookupError(
+        f"couldn't find Rightmove location id for {postcode}. "
+        "Check the postcode, or try again if Rightmove returned a temporary block page."
+    )
 
 
 def get_base_url(postcode, location_id, radius, property_types="flat"):
